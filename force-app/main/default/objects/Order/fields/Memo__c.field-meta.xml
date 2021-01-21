@@ -4,6 +4,7 @@
     <externalId>false</externalId>
     <label>備考</label>
     <length>32768</length>
+    <trackHistory>false</trackHistory>
     <type>LongTextArea</type>
     <visibleLines>10</visibleLines>
 </CustomField>

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>QuoteDate__c</fullName>
+    <fullName>Tax__c</fullName>
     <externalId>false</externalId>
-    <label>見積日</label>
+    <label>消費税</label>
+    <precision>16</precision>
     <required>false</required>
-    <type>Date</type>
+    <scale>0</scale>
+    <trackHistory>false</trackHistory>
+    <type>Currency</type>
 </CustomField>

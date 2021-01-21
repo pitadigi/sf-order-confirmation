@@ -8,6 +8,6 @@
             $A.get("e.force:refreshView").fire();
         }, 1000);
         let recordId = component.get("v.recordId");
-        window.open('/apex/pdQuotation?id=' + recordId, '_blank');
+        window.open('/apex/pdOrderConfirmation?id=' + recordId, '_blank');
     }
 })

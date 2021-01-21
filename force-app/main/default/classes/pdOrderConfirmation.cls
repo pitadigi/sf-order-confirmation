@@ -1,16 +1,16 @@
-public with sharing class pdQuotation {
-    public pdQuotation() {
-        // 見積IDを取得する
-        quoteId = ApexPages.currentPage().getParameters().get('id');
+public with sharing class pdOrderConfirmation {
+    public pdOrderConfirmation() {
+        // 注文IDを取得する
+        orderId = ApexPages.currentPage().getParameters().get('id');
     }
 
     /**
-    * 見積ID
+    * 注文ID
     */
-    private Id quoteId;
+    private Id orderId;
 
     /**
-     * 見積タイトル
+     * 注文タイトル
      */
     public String title { get; set; }
 
@@ -32,19 +32,14 @@ public with sharing class pdQuotation {
     public String contactName { get; set; }
 
     /**
-    * 見積番号
+    * 注文番号
     */
-    public String quoteNumber { get; set; }
+    public String orderNumber { get; set; }
 
     /**
-    * 見積日
+    * 注文日
     */
-    public Date quoteDate { get; set; }
-
-    /**
-    * 有効期限
-    */
-    public String expirationDate { get; set; }
+    public Date orderDate { get; set; }
 
     /**
     * 会社名
@@ -74,9 +69,9 @@ public with sharing class pdQuotation {
     public String mailAddress { get; set; }
 
     /**
-    * 見積明細
+    * 注文明細
     */
-    public List<QuoteLineItem> quoteDetail { get; set; }
+    public List<OrderItem> orderDetail { get; set; }
 
     /**
     * 小計
@@ -108,7 +103,12 @@ public with sharing class pdQuotation {
     public Boolean isTaxNotIncluded { get; set; }
 
     /**
-    * 見積を印刷するために必要なデータを取得する
+     * 発行日
+     */
+    public Date issueDate { get; set; }
+
+    /**
+    * 注文を印刷するために必要なデータを取得する
     */
     public void doPrint() {
         // 現在のユーザ情報を取得する
@@ -138,21 +138,21 @@ public with sharing class pdQuotation {
         // メールアドレス
         mailAddress = user.Email;
 
-        // 見積情報を取得する
-        Quote quote = [SELECT Id,Name,
+        // 注文情報を取得する
+        Order order = [SELECT Id,Name,
             Account.FullName__c,Account.BillingPostalCode,Account.BillingState,Account.BillingCity,Account.BillingStreet,
-            Contact.FirstName, Contact.LastName,TaxType__c,
-            QuoteNumber__c, QuoteDate__c, ExpirationDate__c, Subtotal, Tax, GrandTotal, Description, Memo__c
-            FROM Quote
-            WHERE Id=:quoteId];
+            CustomerAuthorizedBy.FirstName, CustomerAuthorizedBy.LastName,TaxType__c,OrderComfirmationIssueDate__c,
+            OrderNumber, EffectiveDate, TotalAmount, Tax__c, GrandTotal__c, Memo__c
+            FROM Order
+            WHERE Id=:orderId];
         // 取引先名
-        accountName = quote.Account.FullName__c;
+        accountName = order.Account.FullName__c;
         // 取引先郵便番号
-        accountPostalCode = quote.Account.BillingPostalCode;
+        accountPostalCode = order.Account.BillingPostalCode;
         // 取引先住所
-        accountAddress1 = quote.Account.BillingState + quote.Account.BillingCity;
-        if (quote.Account.BillingStreet != null) {
-            String[] accountStreet = quote.Account.BillingStreet.split('\r\n');
+        accountAddress1 = order.Account.BillingState + order.Account.BillingCity;
+        if (order.Account.BillingStreet != null) {
+            String[] accountStreet = order.Account.BillingStreet.split('\r\n');
             if (accountStreet.size() >= 1) {
                 accountAddress1 += accountStreet[0];
             }
@@ -160,43 +160,43 @@ public with sharing class pdQuotation {
                 accountAddress2 = accountStreet[1];
             }
         }
-        // 見積タイトル
-        title = quote.QuoteNumber__c + quote.Name;
+        // 注文タイトル
+        title = order.OrderNumber + order.Name;
         // 取引先担当者名
-        contactName = quote.Contact.LastName + ' ' + quote.Contact.FirstName;
-        // 見積番号
-        quoteNumber = quote.QuoteNumber__c;
-        // 見積日
-        quoteDate = quote.QuoteDate__c;
-        // 有効期限
-        expirationDate = quote.ExpirationDate__c;
+        contactName = order.CustomerAuthorizedBy.LastName + ' ' + order.CustomerAuthorizedBy.FirstName;
+        // 注文番号
+        orderNumber = order.OrderNumber;
+        // 注文日
+        orderDate = order.EffectiveDate;
         // 小計
-        subTotal = quote.Subtotal;
+        subTotal = order.TotalAmount;
         // 消費税
-        tax = quote.Tax;
+        tax = order.Tax__c;
         // 合計
-        total = quote.GrandTotal;
+        total = order.GrandTotal__c;
+        // 発行日
+        issueDate = order.OrderComfirmationIssueDate__c;
         // 備考
-        if (quote.Memo__c != null) {
-            memo = quote.Memo__c.replace('\r\n', '<br />');
+        if (order.Memo__c != null) {
+            memo = order.Memo__c.replace('\r\n', '<br />');
         }
         // 消費税表示
-        isTaxIncluded = (quote.taxType__c == '税込');
-        isTaxNotIncluded = (quote.taxType__c == '税抜');
+        isTaxIncluded = (order.taxType__c == '税込');
+        isTaxNotIncluded = (order.taxType__c == '税抜');
 
-        // 見積明細情報を取得する
-        quoteDetail = [SELECT Id,Description,UnitPrice,Quantity,Unit__c,Subtotal
-            FROM QuoteLineItem
-            WHERE QuoteId=:quoteId
-            ORDER BY SortOrder];
+        // 注文明細情報を取得する
+        orderDetail = [SELECT Id,Description,UnitPrice,Quantity,Unit__c,TotalPrice
+            FROM OrderItem
+            WHERE OrderId=:orderId
+            ORDER BY SortOrder__c];
 
-        // 見積明細が8行未満なら8行になるまで空明細を追加する
-        if (quoteDetail == null) {
-            quoteDetail = new List<QuoteLineItem>();
+        // 注文明細が8行未満なら8行になるまで空明細を追加する
+        if (orderDetail == null) {
+            orderDetail = new List<OrderItem>();
         }
-        for (Integer i=quoteDetail.size() ; i<8 ; i++) {
-            QuoteLineItem item = new QuoteLineItem();
-            quoteDetail.add(item);
+        for (Integer i=orderDetail.size() ; i<8 ; i++) {
+            OrderItem item = new OrderItem();
+            orderDetail.add(item);
         }
     }
 }

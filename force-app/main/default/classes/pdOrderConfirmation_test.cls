@@ -1,5 +1,5 @@
 @isTest
-class pdQuotation_test {
+class pdOrderConfirmation_test {
     @TestSetup
     static void setup(){
         Profile prof = [SELECT Id FROM Profile WHERE Name = 'システム管理者' LIMIT 1];
@@ -76,42 +76,46 @@ class pdQuotation_test {
         ol.TotalPrice = 200000;
         insert ol;
 
-        // 見積情報を作成する
-        Quote quote = new Quote();
-        quote.QuoteDate__c = Date.newInstance(2019, 12, 1);
-        quote.ExpirationDate__c = '本見積提出後1ヶ月';
-        quote.Tax = 20000;
-        quote.OpportunityId = opp.Id;
-        quote.ContactId = contact.Id;
-        quote.Pricebook2Id = pricebook2Id;
-        quote.Name = '見積';
-        insert quote;
-        quote.Status = 'Accepted';
-        update quote;
+        // 注文情報を作成する
+        Order order = new Order();
+        order.EffectiveDate = Date.newInstance(2019, 12, 1);
+        order.Tax__c = 20000;
+        order.OpportunityId = opp.Id;
+        order.CustomerAuthorizedById = contact.Id;
+        order.Pricebook2Id = pricebook2Id;
+        order.Name = '注文';
+        order.TaxType__c = '税込';
+        order.AccountId = account.Id;
+        order.Status = 'Draft';
+        order.OrderComfirmationIssueDate__c = Date.newInstance(2019, 12, 1);
+        insert order;
 
-        // 見積明細を作成する
-        QuoteLineItem item = new QuoteLineItem();
+        // 注文明細を作成する
+        OrderItem item = new OrderItem();
         item.Description = '導入支援サービス';
         item.UnitPrice = 200000;
         item.Quantity = 1;
         item.Unit__c = '式';
-        item.QuoteId = quote.Id;
+        item.OrderId = order.Id;
         item.PricebookEntryId = pbe.Id;
         item.Product2Id = p.Id;
         insert item;
+
+        order.Status = 'Activated';
+        update order;
     }
 
     @isTest
     static void doPrint_test() {
-        Id quoteId = [SELECT Id FROM Quote WHERE QuoteDate__c=:Date.newInstance(2019, 12, 1)].Id;
+        Id orderId = [SELECT Id FROM Order WHERE EffectiveDate=:Date.newInstance(2019, 12, 1)].Id;
 
-        PageReference pageRef = Page.pdQuotation;
-        pageRef.getParameters().put('id', quoteId);
+        PageReference pageRef = Page.pdOrderConfirmation;
+        pageRef.getParameters().put('id', orderId);
         Test.setCurrentPage(pageRef);
 
         User user = [SELECT Id FROM User WHERE Alias='kmatae'];
         System.RunAs(user) {
-            pdQuotation q = new pdQuotation();
+            pdOrderConfirmation q = new pdOrderConfirmation();
 
             q.doPrint();
         }

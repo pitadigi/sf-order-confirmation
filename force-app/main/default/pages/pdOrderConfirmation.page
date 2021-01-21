@@ -1,4 +1,4 @@
-<apex:page docType="html-5.0" controller="pdQuotation" action="{!doPrint}" sidebar="false" showHeader="false" title="{!title}">
+<apex:page docType="html-5.0" controller="pdOrderConfirmation" action="{!doPrint}" sidebar="false" showHeader="false" title="{!title}">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
@@ -280,7 +280,7 @@
 
     <section class="page">
         <div class="report-title">
-            見積書
+            注文請書
         </div>
         <div class="report-header-container">
             <div class="report-header-customer">
@@ -294,7 +294,7 @@
                     {!contactName}&nbsp;様
                 </div>
                 <div class="report-header-description">
-                    下記の通り御見積もり申し上げます。
+                    下記の通り御注文をお請けいたします。
                 </div>
                 <apex:outputPanel layout="block" styleClass="report-header-total-container" rendered="{!isTaxIncluded}">
                     <div class="report-header-total-title">
@@ -320,28 +320,20 @@
             <div class="report-header-company">
                 <div class="report-header-quotation-no-container">
                     <div class="report-header-quotation-no-title">
-                        見積番号
+                        注文番号
                     </div>
                     <div class="report-header-quotation-no">
-                        {!quoteNumber}
+                        {!orderNumber}
                     </div>
                 </div>
                 <div class="report-header-quotation-date-container">
                     <div class="report-header-quotation-date-title">
-                        見積日
+                        発行日
                     </div>
                     <div class="report-header-quotation-date">
                         <apex:outputText value="{0, date, yyyy年MM月dd日}">
-                            <apex:param value="{!quoteDate}" />
+                            <apex:param value="{!issueDate}" />
                         </apex:outputText>
-                    </div>
-                </div>
-                <div class="report-header-expiration-date-container">
-                    <div class="report-header-expiration-date-title">
-                        有効期限
-                    </div>
-                    <div class="report-header-expiration-date">
-                        {!expirationDate}
                     </div>
                 </div>
                 <div class="report-header-company-name">
@@ -369,7 +361,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <apex:repeat var="item" value="{!quoteDetail}">
+                    <apex:repeat var="item" value="{!orderDetail}">
                         <tr>
                             <td class="item-detail">{!item.Description}</td>
                             <td class="quantity">
@@ -385,7 +377,7 @@
                             </td>
                             <td class="total">
                                 <apex:outputText value="{0, number, ###,###}">
-                                    <apex:param value="{!item.Subtotal}"/>
+                                    <apex:param value="{!item.TotalPrice}"/>
                                 </apex:outputText>
                             </td>
                         </tr>
